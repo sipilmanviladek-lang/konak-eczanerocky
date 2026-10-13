@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="300">
+<title>Konak Nöbetçi Eczaneler 384x64</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+  html, body { width: 384px; height: 64px; background: #000; overflow: hidden; color: #fff; }
+  .marquee-container { display: flex; align-items: center; width: 100%; height: 100%; white-space: nowrap; overflow: hidden; }
+  .marquee-content { display: inline-block; padding-left: 384px; animation: scrollText 110s linear infinite; }
+  .pharmacy-item { font-size: 38px; font-weight: bold; }
+  .name { color: #00ff66; }
+  .region { color: #ffd700; }
+  .address { color: #ffffff; }
+  .phone { color: #00bfff; }
+  @keyframes scrollText { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+</style>
+</head>
+<body>
+<div class="marquee-container" id="container">
+  <div class="marquee-content" id="content">
+    <span class="pharmacy-item">Yükleniyor...</span>
+  </div>
+</div>
+
+<script>
+async function eczaneleriGetir() {
+  try {
+    const apiUrl = 'https://api.collectapi.com/health/dutyPharmacy?il=Izmir';
+    const apiKey = 'apikey 0ROnkrGG7TzCEjtXFviHgO:4JrMNquA81hta9mzqueyoT';
+
+    const res = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json',
+        'authorization': apiKey
+      }
+    });
+
+    if (!res.ok) throw new Error('API Hatası');
+    const data = await res.json();
+    const eczaneDizisi = Array.isArray(data) ? data : (data?.result || []);
+
+    const toUpperTR = (str) => (str || "").replace(/i/g, "İ").replace(/ı/g, "I").trim().toUpperCase();
+    const KONAK_BOLGELER = ["KONAK", "ALSANCAK", "BASMANE", "EŞREFPAŞA", "ESREFPASA", "GÜLTEPE", "GULTEPE", "MİTHATPAŞA", "MITHATPASA", "KAHRAMANLAR", "ÇANKAYA", "CANKAYA", "GÜZELYALI", "GUZELYALI", "GÖZTEPE", "GOZTEPE", "PASAPORT", "KÜÇÜKYALI", "KUCUKYALI"];
+
+    const liste = eczaneDizisi.filter(item => {
+      const ilce = toUpperTR(item.dist || item.ilce || item.county);
+      const adres = toUpperTR(item.address || item.loc);
+      return KONAK_BOLGELER.some(k => ilce.includes(k) || adres.includes(k));
+    });
+
+    let itemsHtml = "";
+    if (liste.length === 0) {
+      itemsHtml = '<span class="pharmacy-item">Konak ilçesinde nöbetçi eczane bulunamadı.</span>';
+    } else {
+      liste.forEach(e => {
+        itemsHtml += `
+          <span class="pharmacy-item">
+            <span class="name">💊 ${e.name || e.eczaneAdi || ""}</span> 
+            <span class="region">(${e.dist || "KONAK"})</span> 
+            <span class="address">📍 ${e.address || ""}</span> 
+            <span class="phone">☎ ${e.phone || ""}</span>
+            <span class="space">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+          </span>
+        `;
+      });
+    }
+    document.getElementById('content').innerHTML = itemsHtml;
+  } catch (err) {
+    document.getElementById('content').innerHTML = '<span class="pharmacy-item" style="color:#ff5555;">Bağlantı bekleniyor...</span>';
+  }
+}
+eczaneleriGetir();
+</script>
+</body>
+</html>
