@@ -70,6 +70,8 @@ async function eczaneleriGetir() {
     document.getElementById('content').innerHTML = itemsHtml;
   } catch (err) {
     document.getElementById('content').innerHTML = '<span class="pharmacy-item" style="color:#ff5555;">Bağlantı bekleniyor...</span>';
+    // Hata alırsa (örneğin internet henüz gelmediyse) 5 saniye sonra tekrar dene:
+    setTimeout(eczaneleriGetir, 5000);
   }
 }
 eczaneleriGetir();
